@@ -3,6 +3,8 @@ globals [
   percent-egoist  ;percent of population that is egoistic
   density-death
   mutation
+  perfect-recall
+
   alt-c-g0
   alt-c-g1
   alt-c-g2
@@ -269,6 +271,13 @@ to-report recall-move [tit part]
         set return item (1 + position family memory) memory
       ]
       not member? family memory [
+        (ifelse
+          perfect-recall = true [
+            set return item (length memory - 1) memory
+          ]
+          perfect-recall = false [
+          ]
+        )
       ]
     )
   ]

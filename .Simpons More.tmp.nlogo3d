@@ -3,6 +3,8 @@ globals [
   percent-egoist  ;percent of population that is egoistic
   density-death
   mutation
+  perfect-recall
+
   alt-c-g0
   alt-c-g1
   alt-c-g2
@@ -264,10 +266,20 @@ to-report recall-move [tit part]
   let return green
   let family [who] of part
   ask tit[
-
-      if (member? family memory) [
+    (ifelse
+      member? family memory [
         set return item (1 + position family memory) memory
       ]
+      not member? family memory [
+        (ifelse
+          perfect-recall = true [
+            s
+          ]
+          perfect-recall = false [
+          ]
+        )
+      ]
+    )
   ]
   report return
 end
