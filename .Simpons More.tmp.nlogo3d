@@ -37,7 +37,7 @@ to setup
         set size 1
         set played false
         set partner 0
-        set memory (list who color)
+        set memory (list)
       ]
     ]
   ]
@@ -134,14 +134,14 @@ to play
       color = tit-c-g3 [pair ego-c-g3 alt-c-g3 tit-c-g3]
     )
   ]
-;  ask turtles [
-;    let t self
-;    if played = false [
-;      (ifelse
-;
-;      )
-;    ]
-;  ]
+  ;  ask turtles [
+  ;    let t self
+  ;    if played = false [
+  ;      (ifelse
+  ;
+  ;      )
+  ;    ]
+  ;  ]
 end
 
 to pair [c1 c2 c3]
@@ -156,62 +156,121 @@ to pair [c1 c2 c3]
             set partner myself
             ;create-link-with t [ set color s  ]
           ]
-
         ]
-        partner = 0 [
-          set partner nobody
-        ]
+        partner = 0 [ set partner nobody ]
       )
     ]
   ]
 end
 
-to play [p1 p2]
+to play-payoffs [p1 p2]
   if p2 != nobody and is-turtle? p2 [
-    [
-
+    let c1 [color] of p1
+    (ifelse
+      c1 = alt-c-g0 or c1 =  alt-c-g1 or c1 = alt-c-g2 or c1 = alt-c-g3 [ altplay p1 p2 ]
+      c1 = ego-c-g0 or c1 =  ego-c-g1 or c1 = ego-c-g2 or c1 = ego-c-g3 [ egoplay p1 p2 ]
+      c1 = tit-c-g0 or c1 =  tit-c-g1 or c1 = tit-c-g2 or c1 = tit-c-g3 [ titplay p1 p2 ]
+    )
   ]
   ask p1 [ set played true ]
   ask p2 [ set played true ]
 end
 
-;to altplay [p1 p2]
-;  if p2 != nobody and is-turtle? p2  [
-;    ask p2 [
-;      (ifelse
-;        color = [255 100 100] or color = [100 255 100] or color = [100 100 255] or color = white [
-;          ask p1[
-;            (ifelse
-;              a/a-pay > 0 [ maketurtles color patch-here a/a-pay ]
-;              a/a-pay < 0 [ die ]
-;            )
-;            set played true
-;          ]
-;          (ifelse
-;            a/a-pay > 0 [ maketurtles color patch-here a/a-pay ]
-;            a/a-pay < 0 [ die ]
-;          )
-;          set played true
-;        ]
-;        color = [255 0 0] or color = [0 255 0] or color = [0 0 255] or color = black [
-;          ask p1[
-;            (ifelse
-;              a/e-pay > 0 [ maketurtles color patch-here a/e-pay ]
-;              a/e-pay < 0 [ die ]
-;            )
-;            set played true
-;          ]
-;          (ifelse
-;            e/a-pay > 0 [ maketurtles color patch-here e/a-pay ]
-;            e/a-pay < 0 [ die ]
-;          )
-;          set played true
-;        ]
-;      )
-;    ]
-;  ]
-;  ask p1 [ set played true ]
-;end
+to altplay [alt part]
+  let c1 [color] of alt
+  let c2 [color] of part
+  (ifelse
+    c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
+      (ifelse
+        a/a-pay > 0 [
+          ask alt  [ maketurtles color patch-here a/a-pay who ]
+          ask part [ maketurtles color patch-here a/a-pay who ]
+        ]
+        a/a-pay < 0 [
+          ask alt [die]
+          ask part[die]
+        ]
+      )
+    ]
+    c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
+      (ifelse
+        a/e-pay > 0 [
+          ask alt [ maketurtles color patch-here a/e-pay who]
+          (ifelse
+            e/a-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
+            e/a-pay < 0 [ ask part [die] ]
+          )
+        ]
+        a/e-pay < 0 [
+          ask alt [die]
+          (ifelse
+            e/a-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
+            e/a-pay < 0 [ ask part [die] ]
+          )
+        ]
+      )
+    ]
+    c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
+      ask part [
+        let true-color recall-move part alt
+      ]
+    ]
+  )
+end
+
+to egoplay [ego part]
+  let c1 [color] of ego
+  let c2 [color] of part
+  (ifelse
+    c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
+      (ifelse
+        e/a-pay > 0 [
+          ask ego [ maketurtles color patch-here a/e-pay who ]
+          (ifelse
+            a/e-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
+            a/e-pay < 0 [ ask part [die] ]
+          )
+        ]
+        e/a-pay < 0 [
+          ask ego [die]
+          (ifelse
+            a/e-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
+            a/e-pay < 0 [ ask part [die] ]
+          )
+        ]
+      )
+    ]
+    c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
+      (ifelse
+        e/e-pay > 0 [
+          ask ego  [ maketurtles color patch-here a/a-pay who ]
+          ask part [ maketurtles color patch-here a/a-pay who ]
+        ]
+        e/e-pay < 0 [
+          ask ego [die]
+          ask part[die]
+        ]
+      )
+    ]
+    c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
+    ]
+  )
+end
+
+to titplay [tit part]
+end
+
+to-report recall-move [tit part]
+  let return green
+  let family [who] of part
+  ask tit[
+
+      if (member? family memory) [
+        set return item (1 + position family memory) memory
+      ]
+  ]
+  report return
+end
 
 to move
   ask turtles [
@@ -221,19 +280,20 @@ to move
   tick
 end
 
-to maketurtle [c]
+to maketurtle [c f]
   sprout 1 [
     set color c
+    set who f
     set size 1
     set played true
     set partner 0
   ]
 end
 
-to maketurtles [c p r]
+to maketurtles [c p r f]
   ask p [
     repeat r [
-      maketurtle c
+      maketurtle c f
     ]
   ]
   ask turtles-on p[
