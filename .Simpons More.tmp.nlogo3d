@@ -1,6 +1,7 @@
 globals [
   percent-altruist  ;percent of population that is altruistic
   percent-egoist  ;percent of population that is egoistic
+  percent-tit ;percent of population that plays reciprocal altruism, a modified version of tit-for-tat
   density-death
   mutation
   perfect-recall
@@ -23,6 +24,7 @@ turtles-own [
   partner
   played
   memory
+  family
 ]
 
 to setup
@@ -30,16 +32,19 @@ to setup
   color-setup
   set density-death true
   set mutation true
-  ; create turtles on random patches.
+  set perfect-recall false
+  let x 0
   ask patches [
     set pcolor [125 50 125]
     if random 100 < density[
       sprout 1 [
-        set color one-of [white grey black]
+        set color one-of [white black grey]
         set size 1
         set played false
         set partner 0
-        set memory (list)
+        set family x
+        set memory (list family white)
+        set x x + 1
       ]
     ]
   ]
@@ -136,14 +141,11 @@ to play
       color = tit-c-g3 [pair ego-c-g3 alt-c-g3 tit-c-g3]
     )
   ]
-  ;  ask turtles [
-  ;    let t self
-  ;    if played = false [
-  ;      (ifelse
-  ;
-  ;      )
-  ;    ]
-  ;  ]
+  ask turtles [
+    if played = false [
+      play-payoffs self partner
+    ]
+  ]
 end
 
 to pair [c1 c2 c3]
@@ -174,8 +176,8 @@ to play-payoffs [p1 p2]
       c1 = tit-c-g0 or c1 =  tit-c-g1 or c1 = tit-c-g2 or c1 = tit-c-g3 [ titplay p1 p2 ]
     )
   ]
-  ask p1 [ set played true ]
-  ask p2 [ set played true ]
+  if p2 != nobody and is-turtle? p2 [ ask p2 [ set played true ]]
+  if p1 != nobody and is-turtle? p1 [ ask p1 [ set played true ]]
 end
 
 to altplay [alt part]
@@ -183,38 +185,23 @@ to altplay [alt part]
   let c2 [color] of part
   (ifelse
     c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
-      (ifelse
-        a/a-pay > 0 [
-          ask alt  [ maketurtles color patch-here a/a-pay who ]
-          ask part [ maketurtles color patch-here a/a-pay who ]
-        ]
-        a/a-pay < 0 [
-          ask alt [die]
-          ask part[die]
-        ]
-      )
+      same-play alt part a/a-pay
     ]
     c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
-      (ifelse
-        a/e-pay > 0 [
-          ask alt [ maketurtles color patch-here a/e-pay who]
-          (ifelse
-            e/a-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
-            e/a-pay < 0 [ ask part [die] ]
-          )
-        ]
-        a/e-pay < 0 [
-          ask alt [die]
-          (ifelse
-            e/a-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
-            e/a-pay < 0 [ ask part [die] ]
-          )
-        ]
-      )
+      diff-play alt part a/e-pay e/a-pay
     ]
     c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
       ask part [
         let true-color recall-move part alt
+        (ifelse
+          true-color = white [
+            same-play alt part a/a-pay
+          ]
+          true-color = black [
+            diff-play alt part a/e-pay e/a-pay
+          ]
+        )
+        update-memory part alt white
       ]
     ]
   )
@@ -225,63 +212,195 @@ to egoplay [ego part]
   let c2 [color] of part
   (ifelse
     c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
-      (ifelse
-        e/a-pay > 0 [
-          ask ego [ maketurtles color patch-here a/e-pay who ]
-          (ifelse
-            a/e-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
-            a/e-pay < 0 [ ask part [die] ]
-          )
-        ]
-        e/a-pay < 0 [
-          ask ego [die]
-          (ifelse
-            a/e-pay > 0 [ ask part [ maketurtles color patch-here e/a-pay who ] ]
-            a/e-pay < 0 [ ask part [die] ]
-          )
-        ]
-      )
+      diff-play ego part e/a-pay a/e-pay
     ]
     c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
-      (ifelse
-        e/e-pay > 0 [
-          ask ego  [ maketurtles color patch-here a/a-pay who ]
-          ask part [ maketurtles color patch-here a/a-pay who ]
-        ]
-        e/e-pay < 0 [
-          ask ego [die]
-          ask part[die]
-        ]
-      )
+      same-play ego part e/e-pay
     ]
     c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
+      ask part [
+        let true-color recall-move part ego
+        (ifelse
+          true-color = white [
+            diff-play ego part e/a-pay a/e-pay
+          ]
+          true-color = black [
+            same-play ego part e/e-pay
+          ]
+        )
+        update-memory part ego black
+      ]
     ]
   )
 end
 
 to titplay [tit part]
+  let c1 [color] of tit
+  let c2 [color] of part
+  let true-color recall-move tit part
+  (ifelse
+    c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
+      (ifelse
+        true-color = white [
+          same-play tit part a/a-pay
+        ]
+        true-color = black [
+          diff-play tit part e/a-pay a/e-pay
+        ]
+      )
+      update-memory tit part white
+    ]
+    c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
+      (ifelse
+        true-color = black [
+          same-play tit part e/e-pay
+        ]
+        true-color = white [
+          diff-play tit part a/e-pay e/a-pay
+        ]
+      )
+      update-memory tit part black
+    ]
+    c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
+      ask part [
+        let true-color-part recall-move part tit
+        (ifelse
+          true-color = white [
+            (ifelse
+              true-color-part = black [
+                diff-play tit part a/e-pay e/a-pay
+                update-memory tit part black
+                update-memory part tit white
+              ]
+              true-color-part = white [
+                same-play tit part a/a-pay
+                update-memory tit part white
+                update-memory part tit white
+              ]
+            )
+          ]
+          true-color = black [
+            (ifelse
+              true-color-part = black [
+                same-play tit part e/e-pay
+                update-memory tit part black
+                update-memory part tit black
+              ]
+              true-color-part = white [
+           diff-play tit part e/a-pay e/a-pay
+                update-memory tit part white
+                update-memory part tit black
+              ]
+            )
+          ]
+        )
+      ]
+    ]
+  )
+end
+
+to same-play [p1 p2 same-pay]
+  (ifelse
+    same-pay > 0 [
+      ask p1  [ maketurtles color patch-here same-pay family memory]
+      ask p2  [ maketurtles color patch-here same-pay family memory]
+    ]
+    same-pay < 0 [
+      ask p1 [die]
+      ask p2 [die]
+    ]
+  )
+end
+
+to diff-play [p1 p2 diff-pay-p1/p2 diff-pay-p2/p1]
+  (ifelse
+    diff-pay-p1/p2 > 0 [
+      ask p1 [ maketurtles color patch-here diff-pay-p1/p2 family memory]
+      (ifelse
+        diff-pay-p2/p1 > 0 [ ask p2 [ maketurtles color patch-here diff-pay-p2/p1 family memory] ]
+        diff-pay-p2/p1 < 0 [ ask p2 [die] ]
+      )
+    ]
+    diff-pay-p1/p2 < 0 [
+      ask p1 [die]
+      (ifelse
+        diff-pay-p2/p1 > 0 [ ask p2 [ maketurtles color patch-here diff-pay-p2/p1 family memory] ]
+        diff-pay-p2/p1 < 0 [ ask p2 [die] ]
+      )
+    ]
+  )
 end
 
 to-report recall-move [tit part]
   let return green
-  let family [who] of part
+  let f [family] of part
   ask tit[
     (ifelse
-      member? family memory [
+      member? f memory [
         set return item (1 + position family memory) memory
       ]
-      not member? family memory [
+      not member? f memory [
         (ifelse
           perfect-recall = true [
-            s
+            set return item (length memory - 1) memory
           ]
           perfect-recall = false [
+            let s (proportion memory) * 100
+            let r random 100
+            (ifelse
+              r <= s [set return white]
+              r > s  [set return black]
+            )
           ]
         )
       ]
     )
   ]
   report return
+end
+
+to-report proportion [los]
+  let alt 0
+  let ego 0
+  let p 0
+  foreach los [
+    (ifelse
+      p mod 2 = 1 [
+        (ifelse
+          item p los = ego-c-g0 [set ego 1 + ego]
+          item p los = alt-c-g0 [set alt 1 + alt]
+
+          item p los = ego-c-g1 [set ego 1 + ego]
+          item p los = alt-c-g1 [set alt 1 + alt]
+
+          item p los = ego-c-g2 [set ego 1 + ego]
+          item p los = alt-c-g2 [set alt 1 + alt]
+
+          item p los = ego-c-g3 [set ego 1 + ego]
+          item p los = alt-c-g3 [set alt 1 + alt]
+        )
+      ]
+    )
+    set p p + 1
+  ]
+  report 1 - (proportion-strength / 100) * (ego / (alt + ego))
+end
+
+to update-memory [tit part c]
+  let f [family] of part
+  ask tit [
+    (ifelse
+      member? f memory [
+        if (1 + position f memory) < length memory [
+          set memory replace-item (1 + position f memory) memory c
+        ]
+      ]
+      not member? f memory [
+        set memory lput f memory
+        set memory lput c memory
+      ]
+    )
+  ]
 end
 
 to move
@@ -292,20 +411,21 @@ to move
   tick
 end
 
-to maketurtle [c f]
+to maketurtle [c f m]
   sprout 1 [
     set color c
-    set who f
+    set family f
     set size 1
     set played true
     set partner 0
+    set memory m
   ]
 end
 
-to maketurtles [c p r f]
+to maketurtles [c p r f m]
   ask p [
     repeat r [
-      maketurtle c f
+      maketurtle c f m
     ]
   ]
   ask turtles-on p[
@@ -322,16 +442,7 @@ to nextround
     ask turtles[
       let r random 100
       if r < mutation-rate [
-        (ifelse
-          color = [255 0 0][ set color [255 100 100] ]
-          color = [0 255 0][ set color [100 255 100] ]
-          color = [0 0 255][ set color [100 100 255] ]
-          color = [255 100 100][ set color [255 0 0] ]
-          color = [100 255 100][ set color [0 255 0] ]
-          color = [100 100 255][ set color [0 0 255] ]
-          color = black[ set color white ]
-          color = white[ set color black ]
-        )
+        set color one-of [black white grey]
       ]
     ]
   ]
@@ -339,16 +450,19 @@ end
 
 to updateglobals
   let t count turtles
-  let alt count turtles with [color = [255 100 100] or color = [100 255 100] or color = [100 100 255] or color = white]
-  let ego count turtles with [color = [255 0 0] or color = [0 255 0] or color = [0 0 255] or color = black]
+  let alt count turtles with [color = alt-c-g0 or color = alt-c-g1 or color = alt-c-g2 or color = alt-c-g3]
+  let ego count turtles with [color = ego-c-g0 or color = ego-c-g1 or color = ego-c-g2 or color = ego-c-g3]
+  let tit count turtles with [color = tit-c-g0 or color = tit-c-g1 or color = tit-c-g2 or color = tit-c-g3]
   (ifelse
     t = 0 [
       set percent-altruist alt / 1
       set percent-egoist ego / 1
+      set percent-tit tit / 1
     ]
     t != 0[
       set percent-altruist alt / t
       set percent-egoist ego / t
+      set percent-tit tit / t
     ]
   )
 end
@@ -373,8 +487,6 @@ to play-groups
   updateglobals
   tick
 end
-
-
 
 to play-round
   play
@@ -421,6 +533,17 @@ to toggle-mutation
     ]
   )
 end
+
+to toggle-perfect-recall
+  (ifelse
+    perfect-recall = true [
+      set perfect-recall false
+    ]
+    perfect-recall = false [
+      set perfect-recall true
+    ]
+  )
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 0
@@ -452,10 +575,10 @@ ticks
 30.0
 
 BUTTON
-445
-170
-525
-203
+325
+210
+405
+243
 setup
 setup
 NIL
@@ -469,10 +592,10 @@ NIL
 1
 
 BUTTON
-125
-30
-240
-63
+325
+245
+440
+278
 NIL
 seperategroups
 NIL
@@ -486,10 +609,10 @@ NIL
 1
 
 BUTTON
-125
-120
-202
-153
+325
+280
+402
+313
 NIL
 combine
 NIL
@@ -502,67 +625,16 @@ NIL
 NIL
 1
 
-BUTTON
-50
-165
-113
-198
-NIL
-play
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-50
-120
-113
-153
-NIL
-move\n
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-50
-75
-113
-108
-NIL
-move
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
-445
-375
-617
-408
+515
+370
+687
+403
 density
 density
 0
 100
-8.0
+36.0
 1
 1
 NIL
@@ -629,61 +701,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-50
-210
-127
-243
-NIL
-breakup\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-120
-165
-207
-198
-NIL
-nextround\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-140
-210
-247
-243
-NIL
-updateglobals\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
 445
-250
+245
 562
-283
+278
 NIL
 play-black-white
 T
@@ -697,15 +718,15 @@ NIL
 1
 
 SLIDER
-635
-375
-807
-408
+705
+370
+877
+403
 densitylimit
 densitylimit
 0
 10000
-5032.0
+5066.0
 1
 1
 NIL
@@ -713,9 +734,9 @@ HORIZONTAL
 
 BUTTON
 445
-290
+280
 542
-323
+313
 NIL
 play-groups
 T
@@ -790,25 +811,25 @@ e/e-pay + e/e-pay
 11
 
 SLIDER
-635
-425
-807
-458
+510
+545
+682
+578
 death-rate
 death-rate
 0
 100
-53.0
+62.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-445
-425
-592
-458
+515
+420
+662
+453
 NIL
 toggle-density-death
 NIL
@@ -822,10 +843,10 @@ NIL
 1
 
 MONITOR
-445
-460
-532
-505
+515
+455
+602
+500
 density-death
 density-death
 17
@@ -833,25 +854,25 @@ density-death
 11
 
 SLIDER
-445
-505
-622
-538
+515
+500
+692
+533
 density-death-strength
 density-death-strength
 0
 100
-62.0
+64.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-635
-465
-752
-498
+705
+460
+822
+493
 NIL
 toggle-mutation\n
 NIL
@@ -865,10 +886,10 @@ NIL
 1
 
 MONITOR
-635
-500
-697
-545
+705
+495
+767
+540
 NIL
 mutation
 17
@@ -876,19 +897,62 @@ mutation
 11
 
 SLIDER
-635
-545
-807
-578
+705
+540
+877
+573
 mutation-rate
 mutation-rate
 0
 100
-0.0
+1.0
 1
 1
 NIL
 HORIZONTAL
+
+SLIDER
+330
+500
+502
+533
+proportion-strength
+proportion-strength
+0
+100
+31.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+330
+420
+472
+453
+NIL
+toggle-perfect-recall
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+330
+455
+417
+500
+NIL
+perfect-recall
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
