@@ -2,10 +2,12 @@ globals [
   percent-altruist  ;percent of population that is altruistic
   percent-egoist  ;percent of population that is egoistic
   percent-tit ;percent of population that plays reciprocal altruism, a modified version of tit-for-tat
-  density-death
-  mutation
-  perfect-recall
+  density-death ;toggles death rate being dependent on density
+  mutation ;toggles if mutation happens
+  perfect-recall ;toggles if tit-for-tat players have perfect recall
 
+  ;all colors used in the game
+  ;Format: (Strategy)-c-(Group)
   alt-c-g0
   alt-c-g1
   alt-c-g2
@@ -21,12 +23,13 @@ globals [
 ]
 
 turtles-own [
-  partner
-  played
-  memory
-  family
+  partner ;the turtle to play the game with
+  played ;determines if a turtle has already played the game in a given round
+  memory ;a list formated in pairs of family-color, passed down to offspring
+  family ;family of turtle, passed down to offspring
 ]
 
+;sets up the board for a new simulation
 to setup
   clear-all
   color-setup
@@ -34,6 +37,7 @@ to setup
   set mutation true
   set perfect-recall false
   let x 0
+  ;creates turtles on patches
   ask patches [
     set pcolor [125 50 125]
     if random 100 < density[
@@ -48,11 +52,16 @@ to setup
       ]
     ]
   ]
+  ;removes turtle 0 to prevent conflicts with the color black (which equals 0) in memory
+  ask turtle 0 [ die ]
   updateglobals
   reset-ticks
 end
 
+;sets up the colors to be used in the simulation
 to color-setup
+  ;all colors can be changed except ones ending in g0
+
   set alt-c-g0 white
   set alt-c-g1 [255 200 200]
   set alt-c-g2 [200 255 200]
@@ -69,6 +78,7 @@ to color-setup
   set tit-c-g3 [0 0 255]
 end
 
+;seperates g0 turtles into one of three groups randomly
 to seperategroups
   ask turtles[
     let group random 3
@@ -96,6 +106,7 @@ to seperategroups
   ]
 end
 
+;combines g1, g2, and g3 turtles back into one g0 group
 to combine
   ask turtles[
     (ifelse
@@ -115,13 +126,16 @@ to combine
   breakup
 end
 
+;makes all turtles have no partner
 to breakup
   ask turtles[
     set partner 0
   ]
 end
 
+;plays a round
 to play
+  ;finds a partner for a turtle within their group for all turtles
   ask turtles[
     (ifelse
       color = ego-c-g0 [pair ego-c-g0 alt-c-g0 tit-c-g0]
@@ -141,6 +155,7 @@ to play
       color = tit-c-g3 [pair ego-c-g3 alt-c-g3 tit-c-g3]
     )
   ]
+  ;ask turtles who have not played this round to play
   ask turtles [
     if played = false [
       play-payoffs self partner
@@ -148,17 +163,16 @@ to play
   ]
 end
 
+;pairs turtles with c1 or c2 or c3 together
 to pair [c1 c2 c3]
   ask turtles with [(color = c1) or (color = c2) or (color = c3)][
-    ;let t self
     if partner = 0 [
+      ;finds a another turtle within the group who does not has a partner
       set partner one-of other turtles with [(partner = 0) and ((color = c1) or (color = c2) or (color = c3))]
       (ifelse
         partner != nobody [
           ask partner [
-            ;let s color
             set partner myself
-            ;create-link-with t [ set color s  ]
           ]
         ]
         partner = 0 [ set partner nobody ]
@@ -167,6 +181,7 @@ to pair [c1 c2 c3]
   ]
 end
 
+;plays a round between turtle p1 and turtle p2
 to play-payoffs [p1 p2]
   if p2 != nobody and is-turtle? p2 [
     let c1 [color] of p1
@@ -176,22 +191,27 @@ to play-payoffs [p1 p2]
       c1 = tit-c-g0 or c1 =  tit-c-g1 or c1 = tit-c-g2 or c1 = tit-c-g3 [ titplay p1 p2 ]
     )
   ]
+  ;sets that both players, if they still exist, have played the game
   if p2 != nobody and is-turtle? p2 [ ask p2 [ set played true ]]
   if p1 != nobody and is-turtle? p1 [ ask p1 [ set played true ]]
 end
 
+;plays a round between an altruist and another turtle
 to altplay [alt part]
-  let c1 [color] of alt
   let c2 [color] of part
   (ifelse
+    ;the partner is an altruist
     c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
       same-play alt part a/a-pay
     ]
+    ;the partner is an egoist
     c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
       diff-play alt part a/e-pay e/a-pay
     ]
+    ;the partner is a tit-for-tat player
     c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
       ask part [
+        ;gets the color/strategy the tit-for-tat player will play
         let true-color recall-move part alt
         (ifelse
           true-color = white [
@@ -201,24 +221,29 @@ to altplay [alt part]
             diff-play alt part a/e-pay e/a-pay
           ]
         )
+        ;updates the memory of the tit-for-tat player
         update-memory part alt white
       ]
     ]
   )
 end
 
+;plays a round between an egoist and another turtle
 to egoplay [ego part]
-  let c1 [color] of ego
   let c2 [color] of part
   (ifelse
+    ;the partner is an altruist
     c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
       diff-play ego part e/a-pay a/e-pay
     ]
+    ;the partner is an egoist
     c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
       same-play ego part e/e-pay
     ]
+    ;the partner is a tit-for-tat player
     c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
       ask part [
+        ;gets the color/strategy that the tit-for-tat player will play
         let true-color recall-move part ego
         (ifelse
           true-color = white [
@@ -228,17 +253,20 @@ to egoplay [ego part]
             same-play ego part e/e-pay
           ]
         )
+        ;updates the memory of the tit-for-tat player
         update-memory part ego black
       ]
     ]
   )
 end
 
+;plays a round between a tit-for-tat player and another turtle
 to titplay [tit part]
-  let c1 [color] of tit
   let c2 [color] of part
+  ;gets the color/strategy that the tit-for-tat player will play
   let true-color recall-move tit part
   (ifelse
+    ;the partner is an altruist
     c2 = alt-c-g0 or c2 =  alt-c-g1 or c2 = alt-c-g2 or c2 = alt-c-g3 [
       (ifelse
         true-color = white [
@@ -248,8 +276,10 @@ to titplay [tit part]
           diff-play tit part e/a-pay a/e-pay
         ]
       )
+      ;updates the memory of the tit-for-tat player
       update-memory tit part white
     ]
+    ;the partner is an egoist
     c2 = ego-c-g0 or c2 =  ego-c-g1 or c2 = ego-c-g2 or c2 = ego-c-g3 [
       (ifelse
         true-color = black [
@@ -259,21 +289,28 @@ to titplay [tit part]
           diff-play tit part a/e-pay e/a-pay
         ]
       )
+      ;updates the memory of the tit-for-tat player
       update-memory tit part black
     ]
+    ;the partner is a tit-for-tat player
     c2 = tit-c-g0 or c2 =  tit-c-g1 or c2 = tit-c-g2 or c2 = tit-c-g3 [
       ask part [
+        ;gets the color/strategy that the tit-for-tat player (the partner) will play
         let true-color-part recall-move part tit
         (ifelse
           true-color = white [
             (ifelse
+              ;the partner plays like an egoist
               true-color-part = black [
                 diff-play tit part a/e-pay e/a-pay
+                ;updates the memory of both tit-for-tat-players
                 update-memory tit part black
                 update-memory part tit white
               ]
+              ;the partner plays like an altruist
               true-color-part = white [
                 same-play tit part a/a-pay
+                ;updates the memory of both tit-for-tat-players
                 update-memory tit part white
                 update-memory part tit white
               ]
@@ -281,13 +318,15 @@ to titplay [tit part]
           ]
           true-color = black [
             (ifelse
+              ;the partner plays like an egoist
               true-color-part = black [
                 same-play tit part e/e-pay
                 update-memory tit part black
                 update-memory part tit black
               ]
+              ;the partner plays like an altruist
               true-color-part = white [
-           diff-play tit part e/a-pay e/a-pay
+                diff-play tit part e/a-pay e/a-pay
                 update-memory tit part white
                 update-memory part tit black
               ]
@@ -299,12 +338,14 @@ to titplay [tit part]
   )
 end
 
+;plays a round between two players that have the same strategy
 to same-play [p1 p2 same-pay]
   (ifelse
     same-pay > 0 [
       ask p1  [ maketurtles color patch-here same-pay family memory]
       ask p2  [ maketurtles color patch-here same-pay family memory]
     ]
+    ;if the payoff is less than 0, the turtle dies
     same-pay < 0 [
       ask p1 [die]
       ask p2 [die]
@@ -312,30 +353,37 @@ to same-play [p1 p2 same-pay]
   )
 end
 
+;plays a round between two players that have different strategies
+;inputs for payoffs (last two) go p1 vs p2 payoff then p2 vs p1 payoff
 to diff-play [p1 p2 diff-pay-p1/p2 diff-pay-p2/p1]
   (ifelse
     diff-pay-p1/p2 > 0 [
       ask p1 [ maketurtles color patch-here diff-pay-p1/p2 family memory]
       (ifelse
         diff-pay-p2/p1 > 0 [ ask p2 [ maketurtles color patch-here diff-pay-p2/p1 family memory] ]
+        ;if the payoff is less than 0, the turtle dies
         diff-pay-p2/p1 < 0 [ ask p2 [die] ]
       )
     ]
+    ;if the payoff is less than 0, the turtle dies
     diff-pay-p1/p2 < 0 [
       ask p1 [die]
       (ifelse
         diff-pay-p2/p1 > 0 [ ask p2 [ maketurtles color patch-here diff-pay-p2/p1 family memory] ]
+        ;if the payoff is less than 0, the turtle dies
         diff-pay-p2/p1 < 0 [ ask p2 [die] ]
       )
     ]
   )
 end
 
+;given a tit-for-tat player and its partner, returns the appropriate strategy of the tit-for-tat player
 to-report recall-move [tit part]
   let return green
   let f [family] of part
   ask tit[
     (ifelse
+      ;checks if the tit-for-tat player remembers playing the partner
       member? f memory [
         set return item (1 + position family memory) memory
       ]
@@ -359,6 +407,9 @@ to-report recall-move [tit part]
   report return
 end
 
+;only run when tit-for-tat player meets a new player not in his memory
+;determines the probability a tit-for-tat player plays and egoist strategy based on his memory
+;probability: 1 - (proportion-strength / 100) * percent of egoist in memory
 to-report proportion [los]
   let alt 0
   let ego 0
@@ -386,14 +437,13 @@ to-report proportion [los]
   report 1 - (proportion-strength / 100) * (ego / (alt + ego))
 end
 
+;updates a tit-for-tat player's memory with the partner and the strategy of the partner
 to update-memory [tit part c]
   let f [family] of part
   ask tit [
     (ifelse
       member? f memory [
-        if (1 + position f memory) < length memory [
-          set memory replace-item (1 + position f memory) memory c
-        ]
+        set memory replace-item (1 + position f memory) memory c
       ]
       not member? f memory [
         set memory lput f memory
@@ -403,6 +453,7 @@ to update-memory [tit part c]
   ]
 end
 
+;moves the turtles randomly
 to move
   ask turtles [
     right random 360
@@ -411,6 +462,7 @@ to move
   tick
 end
 
+;makes a turtle with a set color (c), family (f), and memory (m)
 to maketurtle [c f m]
   sprout 1 [
     set color c
@@ -422,6 +474,8 @@ to maketurtle [c f m]
   ]
 end
 
+;makes a set number of turtles (r) on a given patch (p)
+;all turtles have made will have the color (c), the family (f), and the memory (m)
 to maketurtles [c p r f m]
   ask p [
     repeat r [
@@ -434,10 +488,13 @@ to maketurtles [c p r f m]
   ]
 end
 
+;readies a simulation for the next round of games
 to nextround
+  ;resets the turtles
   ask turtles[
     set played false
   ]
+  ;mutates the turtles
   if mutation [
     ask turtles[
       let r random 100
@@ -448,6 +505,7 @@ to nextround
   ]
 end
 
+;updates the global variables
 to updateglobals
   let t count turtles
   let alt count turtles with [color = alt-c-g0 or color = alt-c-g1 or color = alt-c-g2 or color = alt-c-g3]
@@ -467,6 +525,7 @@ to updateglobals
   )
 end
 
+;plays a game with only one group
 to play-black-white
   if count turtles >= densitylimit or count turtles = 0 [stop]
   play
@@ -477,6 +536,7 @@ to play-black-white
   tick
 end
 
+;plays a game with three groups
 to play-groups
   if count turtles >= densitylimit or count turtles = 0 [stop]
   seperategroups
@@ -488,6 +548,7 @@ to play-groups
   tick
 end
 
+;plays a single round
 to play-round
   play
   nextround
@@ -497,13 +558,16 @@ to play-round
   tick
 end
 
+;handles the population
 to grimreaper
   (ifelse
+    ;death rate dependent on the relative density
     density-death = true [
       ask turtles[
         if random 100 < density-death-strength * (1 - ( (density / 100) - (count turtles / count patches)))[ die ]
       ]
     ]
+    ;death rate is a set probability
     density-death = false [
       ask turtles[
         if random 100 < death-rate [ die ]
@@ -512,6 +576,7 @@ to grimreaper
   )
 end
 
+;switches on and off density dependent death
 to toggle-density-death
   (ifelse
     density-death = true [
@@ -523,6 +588,7 @@ to toggle-density-death
   )
 end
 
+;switches on and off mutation
 to toggle-mutation
   (ifelse
     mutation = true [
@@ -534,6 +600,7 @@ to toggle-mutation
   )
 end
 
+;switches on and off perfect recall
 to toggle-perfect-recall
   (ifelse
     perfect-recall = true [
@@ -634,7 +701,7 @@ density
 density
 0
 100
-36.0
+54.0
 1
 1
 NIL
@@ -905,7 +972,7 @@ mutation-rate
 mutation-rate
 0
 100
-1.0
+0.0
 1
 1
 NIL
@@ -913,9 +980,9 @@ HORIZONTAL
 
 SLIDER
 330
-500
+485
 502
-533
+518
 proportion-strength
 proportion-strength
 0
@@ -928,9 +995,9 @@ HORIZONTAL
 
 BUTTON
 330
-420
+405
 472
-453
+438
 NIL
 toggle-perfect-recall
 NIL
@@ -945,9 +1012,9 @@ NIL
 
 MONITOR
 330
-455
+440
 417
-500
+485
 NIL
 perfect-recall
 17
@@ -957,10 +1024,11 @@ perfect-recall
 @#$#@#$#@
 ## WHAT IS IT?
 
-This project models the behavior of two types of agents in a neighborhood. The orange agents and blue agents get along with one another. But each agent wants to make sure that it lives near some of "its own." That is, each orange agent wants to live near at least some orange agents, and each blue agent wants to live near at least some blue agents. The simulation shows how these individual preferences ripple through the neighborhood, leading to large-scale patterns.
+This projecty models two player games across a populution. The model allows for three types of players: altruists, egoists, and tit-for-tat players. Altuists and egoists stick to their repsective strategies. Tit-for-tat players have a memory, and update their strategy based on the game so far and the player they are playing. Each round, players play the game within their group. Some players randomly die, and we proceed to the next round. After several rounds, the simluation attempts to show evolutionary stable strategies.
 
-This project was inspired by Thomas Schelling's writings about social systems (such as housing patterns in cities).
+The simulation also allows for mutation. With it on, each player has a user set chance to mutate (switch strategy).
 
+This project was inspired by Axelrod and Hamiliton and their writings on tit-for-tat as an evolutionary stable strategy.
 ## HOW TO USE IT
 
 Click the SETUP button to set up the agents. There are approximately equal numbers of orange and blue agents. The agents are set up so no patch has more than one agent.  Click GO to start the simulation. If agents don't have enough same-color neighbors, they move to a nearby patch. (The topology is wrapping, so that patches on the bottom edge are neighbors with patches on the top and similar for left and right).
@@ -1007,37 +1075,6 @@ When an agent moves, `move-to` is used to move the agent to the center of the pa
 
 Note two different methods that can be used for find-new-spot, one of them (the one we use) is recursive.
 
-## CREDITS AND REFERENCES
-
-Schelling, T. (1978). Micromotives and Macrobehavior. New York: Norton.
-
-See also: Rauch, J. (2002). Seeing Around Corners; The Atlantic Monthly; April 2002;Volume 289, No. 4; 35-48. https://www.theatlantic.com/magazine/archive/2002/04/seeing-around-corners/302471/
-
-## HOW TO CITE
-
-If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
-
-For the model itself:
-
-* Wilensky, U. (1997).  NetLogo Segregation model.  http://ccl.northwestern.edu/netlogo/models/Segregation.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-Please cite the NetLogo software as:
-
-* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-## COPYRIGHT AND LICENSE
-
-Copyright 1997 Uri Wilensky.
-
-![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
-
-This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
-
-Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
-
-This model was created as part of the project: CONNECTED MATHEMATICS: MAKING SENSE OF COMPLEX PHENOMENA THROUGH BUILDING OBJECT-BASED PARALLEL MODELS (OBPML).  The project gratefully acknowledges the support of the National Science Foundation (Applications of Advanced Technologies Program) -- grant numbers RED #9552950 and REC #9632612.
-
-This model was converted to NetLogo as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227. Converted from StarLogoT to NetLogo, 2001.
 
 <!-- 1997 2001 -->
 @#$#@#$#@
