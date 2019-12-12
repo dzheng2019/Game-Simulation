@@ -1123,24 +1123,23 @@ A zero payoff means the turtle will simply just stay alive.
 
 A -1 payoff means the turtle will die. 
 
+### How to handle mutation
+
+Click the TOGGLE-MUTATION button to toggle on/off mutation. Mutation handles where or not players mutate.
+
+The MUTATION-RATE slider determines the probability that a player is asked to change strategy.
+
+* For example, a MUTATION-RATE of 1 means that there is a 1% chance a turtle is asked to switch strategy. 
+
 
 ## EXTENDING THE MODEL
 
-The `find-new-spot` procedure has the agents move locally till they find a spot. Can you rewrite this procedure so the agents move directly to an appropriate new spot?
+The current manner of handling death in the simulation could be improved. The current equation is simple, which improves run-time. However, it lacks the complexity to do things like cap the population at a certain density. 
 
-Incorporate social networks into this model.  For instance, have unhappy agents decide on a new location based on information about what a neighborhood is like from other agents in their network.
+The model also currently does not allow for the death rate to be linked directly to performance in the game. It is indirectly, though the number of offspring produced. However, it would interesting to make certrain strategies more or less likely to die.
 
-Change the rules for agent happiness.  One idea: suppose that the agents need some minimum threshold of "good neighbors" to be happy with their location.  Suppose further that they don't always know if someone makes a good neighbor. When they do, they use that information.  When they don't, they use color as a proxy -- i.e., they assume that agents of the same color make good neighbors.
+Tit-for-tat players currently only share their memory with their offspring. There is potential to add some sort of "shared" memory. Or, perhaps when tit-for-tat players play each other, they exchange their memories. 
 
-The two different visualizations emphasize different aspects of the model. The SQUARE-X visualization shows whether an agent is happy or not. Can you design a different visualization that emphasizes different aspects?
-
-## NETLOGO FEATURES
-
-`sprout` is used to create agents while ensuring no patch has more than one agent on it.
-
-When an agent moves, `move-to` is used to move the agent to the center of the patch it eventually finds.
-
-Note two different methods that can be used for find-new-spot, one of them (the one we use) is recursive.
 
 
 <!-- 1997 2001 -->
