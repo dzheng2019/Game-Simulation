@@ -642,10 +642,10 @@ ticks
 30.0
 
 BUTTON
-325
-210
-405
-243
+20
+130
+100
+163
 setup
 setup
 NIL
@@ -659,10 +659,10 @@ NIL
 1
 
 BUTTON
-325
-245
-440
-278
+20
+165
+135
+198
 NIL
 seperategroups
 NIL
@@ -676,10 +676,10 @@ NIL
 1
 
 BUTTON
-325
-280
-402
-313
+20
+200
+97
+233
 NIL
 combine
 NIL
@@ -693,10 +693,10 @@ NIL
 1
 
 SLIDER
-515
-370
-687
-403
+210
+290
+382
+323
 density
 density
 0
@@ -708,10 +708,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-705
-140
-877
-173
+400
+60
+572
+93
 e/a-pay
 e/a-pay
 -1
@@ -723,10 +723,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-705
-185
-877
-218
+400
+105
+572
+138
 e/e-pay
 e/e-pay
 -1
@@ -738,10 +738,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-705
-230
-877
-263
+400
+150
+572
+183
 a/a-pay
 a/a-pay
 -1
@@ -753,10 +753,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-705
-275
-877
-308
+400
+195
+572
+228
 a/e-pay
 a/e-pay
 -1
@@ -768,10 +768,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-445
-245
-562
-278
+140
+165
+257
+198
 NIL
 play-black-white
 T
@@ -785,10 +785,10 @@ NIL
 1
 
 SLIDER
-705
-370
-877
-403
+400
+290
+572
+323
 densitylimit
 densitylimit
 0
@@ -800,10 +800,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-445
-280
-542
-313
+140
+200
+237
+233
 NIL
 play-groups
 T
@@ -817,10 +817,10 @@ NIL
 1
 
 BUTTON
-445
-210
-537
-243
+140
+130
+232
+163
 NIL
 play-round
 NIL
@@ -834,10 +834,10 @@ NIL
 1
 
 SLIDER
-705
-415
-877
-448
+400
+335
+572
+368
 death-rate
 death-rate
 0
@@ -849,10 +849,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-515
-405
-662
-438
+210
+325
+357
+358
 NIL
 toggle-density-death
 NIL
@@ -866,10 +866,10 @@ NIL
 1
 
 MONITOR
-515
-440
-602
-485
+210
+360
+297
+405
 density-death
 density-death
 17
@@ -877,10 +877,10 @@ density-death
 11
 
 SLIDER
-515
-485
-692
-518
+210
+405
+387
+438
 density-death-strength
 density-death-strength
 0
@@ -892,10 +892,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-705
-460
-822
-493
+400
+380
+517
+413
 NIL
 toggle-mutation\n
 NIL
@@ -909,10 +909,10 @@ NIL
 1
 
 MONITOR
-705
-495
-767
-540
+400
+415
+462
+460
 NIL
 mutation
 17
@@ -920,10 +920,10 @@ mutation
 11
 
 SLIDER
-705
-540
-877
-573
+400
+460
+572
+493
 mutation-rate
 mutation-rate
 0
@@ -935,10 +935,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-330
-485
-502
-518
+25
+405
+197
+438
 proportion-strength
 proportion-strength
 0
@@ -950,10 +950,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-330
-405
-472
-438
+25
+325
+167
+358
 NIL
 toggle-perfect-recall
 NIL
@@ -967,10 +967,10 @@ NIL
 1
 
 MONITOR
-330
-440
-417
-485
+25
+360
+112
+405
 NIL
 perfect-recall
 17
@@ -978,10 +978,10 @@ perfect-recall
 11
 
 PLOT
-950
-105
-1360
-365
+645
+25
+1055
+285
 Proportions
 time
 percent
@@ -998,40 +998,40 @@ PENS
 "alt" 1.0 0 -13345367 true "" "plot percent-altruist"
 
 TEXTBOX
-980
-125
-1045
-143
+675
+45
+740
+63
 Egoist - Red
 11
 15.0
 1
 
 TEXTBOX
-980
-140
-1070
-158
+675
+60
+765
+78
 Tit-for-tat - Green
 11
 65.0
 1
 
 TEXTBOX
-980
-155
-1130
-173
+675
+75
+825
+93
 Altruist - Blue
 11
 105.0
 1
 
 PLOT
-950
-370
-1360
-570
+645
+290
+1055
+490
 Population
 time
 number
@@ -1048,7 +1048,7 @@ PENS
 @#$#@#$#@
 ## WHAT IS IT?
 
-This project models two-player games across a population. The model allows for three types of players: altruists, egoists, and tit-for-tat players. Altruists and egoists stick to their respective strategies. Tit-for-tat players have a memory and update their strategy based on the game so far and the player they are playing. Each round, players play the game within their group. Some players randomly die, and we proceed to the next round. After several rounds, the simulation attempts to show evolutionarily stable strategies.
+This project models two-player games across a population. The model allows for three types of players: altruists, egoists, and tit-for-tat players. Altruists and egoists stick to their respective strategies. Tit-for-tat players have a memory and update their strategy based on the game so far and the player they are playing against. Each round, players play the game within their group. Some players randomly die, and we proceed to the next round. After several rounds, the simulation attempts to show evolutionarily stable strategies.
 
 Furthermore, the simulation also allows for mutation. With it on, each player has a user set chance to mutate (switch strategy).
 
@@ -1083,14 +1083,14 @@ The PROPORTION-STRENGTH slider controls how much p affects a tit-for-tat player'
 For Example:
 Assume a tit-for-tat player has played two altruists and two egoists. Here, p = 0.5.
 
- * If PROPORTION-STRENGTH = 100, then there is a 1 - 1*(0.5) = .5 = 50% chance the tit-for-tat player plays an alturist strategy when meeting a new player.
- * If PROPORTION-STRENGTH = 20, then there is a 1 - 0.2*(0.5) = 0.9 = 90% chance the tit-for-tat player plays an alturist strategy when meeting a new player.
+ * If PROPORTION-STRENGTH = 100, then there is a 1 - 1*(0.5) = .5 = 50% chance the tit-for-tat player plays an altruist strategy when meeting a new player.
+ * If PROPORTION-STRENGTH = 20, then there is a 1 - 0.2*(0.5) = 0.9 = 90% chance the tit-for-tat player plays an altruist strategy when meeting a new player.
 
 ### How to handle death
 
 The DENSITY slider determines several things. 
 
-1. It is used to on setup as the probability of each patch having turtle. 
+1. It is used on setup as the probability of each patch having a turtle. 
 2. For example, a DENSITY of 50 would mean there is a 50% each patch has a turtle.
 It is used as a part of the equation to calculate the probability of death when density death is true.
 
@@ -1106,7 +1106,7 @@ The DEATH-RATE slider determines a set probability of a turtle dying.
 
 The DENSITYLIMIT sliders determine a set number of turtles that if the simulation passes, it stops. This is mostly used to prevent crashes due to populations growing too large for the program to handle.
 
-If most use cases, having density-death set to true will yield the best results in terms of allowing for evolution. A DENSITY-DEATH-STRENGTH of around 60 is also usually ideal, though this should be tweaked for each game.
+In most use cases, having density-death set to true will yield the best results in terms of allowing for evolution. A DENSITY-DEATH-STRENGTH of around 60 is also usually ideal, though this should be tweaked for each game.
 
 
 ### How to handle payoffs
@@ -1136,7 +1136,7 @@ The MUTATION-RATE slider determines the probability that a player is asked to ch
 
 The current manner of handling death in the simulation could be improved. The current equation is simple, which improves run-time. However, it lacks the complexity to do things like cap the population at a certain density. 
 
-The model also currently does not allow for the death rate to be linked directly to performance in the game. It is indirectly, though the number of offspring produced. However, it would interesting to make certrain strategies more or less likely to die.
+The model also currently does not allow for the death rate to be linked directly to performance in the game. It is indirectly, though the number of offspring produced. However, it would interesting to make certain strategies more or less likely to die.
 
 Tit-for-tat players currently only share their memory with their offspring. There is potential to add some sort of "shared" memory. Or, perhaps when tit-for-tat players play each other, they exchange their memories. 
 
