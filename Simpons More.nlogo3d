@@ -68,14 +68,14 @@ to color-setup
   set alt-c-g3 [200 200 255]
 
   set ego-c-g0  black
-  set ego-c-g1 [80 0 0]
-  set ego-c-g2 [0 80 0]
-  set ego-c-g3 [0 0 80]
+  set ego-c-g1 [50 0 0]
+  set ego-c-g2 [0 50 0]
+  set ego-c-g3 [0 0 50]
 
   set tit-c-g0 grey
-  set tit-c-g1 [255 0 0]
-  set tit-c-g2 [0 255 0]
-  set tit-c-g3 [0 0 255]
+  set tit-c-g1 [255 50 50]
+  set tit-c-g2 [50 255 50]
+  set tit-c-g3 [50 50 255]
 end
 
 ;seperates g0 turtles into one of three groups randomly
@@ -708,40 +708,40 @@ NIL
 HORIZONTAL
 
 SLIDER
-625
-105
-797
-138
+705
+140
+877
+173
 e/a-pay
 e/a-pay
 -1
 10
-3.0
+5.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-625
-150
-797
-183
+705
+185
+877
+218
 e/e-pay
 e/e-pay
 -1
 10
-1.0
+-1.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-625
-195
-797
-228
+705
+230
+877
+263
 a/a-pay
 a/a-pay
 -1
@@ -753,10 +753,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-625
-240
-797
-273
+705
+275
+877
+308
 a/e-pay
 a/e-pay
 -1
@@ -832,50 +832,6 @@ NIL
 NIL
 NIL
 1
-
-MONITOR
-800
-105
-922
-150
-Ego vs Altru Payout
-e/a-pay - a/e-pay
-17
-1
-11
-
-MONITOR
-800
-195
-927
-240
-Altru vs Altru Payout
-a/a-pay + a/a-pay
-17
-1
-11
-
-MONITOR
-800
-150
-922
-195
-Altru vs Ego Payout
-a/e-pay - e/a-pay
-17
-1
-11
-
-MONITOR
-800
-240
-917
-285
-Ego vs Ego Payout
-e/e-pay + e/e-pay
-17
-1
-11
 
 SLIDER
 705
@@ -1021,41 +977,152 @@ perfect-recall
 1
 11
 
+PLOT
+950
+105
+1360
+365
+Proportions
+time
+percent
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"ego" 1.0 0 -2674135 true "" "plot percent-egoist"
+"tit" 1.0 0 -13840069 true "" "plot percent-tit"
+"alt" 1.0 0 -13345367 true "" "plot percent-altruist"
+
+TEXTBOX
+980
+125
+1045
+143
+Egoist - Red
+11
+15.0
+1
+
+TEXTBOX
+980
+140
+1070
+158
+Tit-for-tat - Green
+11
+65.0
+1
+
+TEXTBOX
+980
+155
+1130
+173
+Altruist - Blue
+11
+105.0
+1
+
+PLOT
+950
+370
+1360
+570
+Population
+time
+number
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-This projecty models two player games across a populution. The model allows for three types of players: altruists, egoists, and tit-for-tat players. Altuists and egoists stick to their repsective strategies. Tit-for-tat players have a memory, and update their strategy based on the game so far and the player they are playing. Each round, players play the game within their group. Some players randomly die, and we proceed to the next round. After several rounds, the simluation attempts to show evolutionary stable strategies.
+This project models two-player games across a population. The model allows for three types of players: altruists, egoists, and tit-for-tat players. Altruists and egoists stick to their respective strategies. Tit-for-tat players have a memory and update their strategy based on the game so far and the player they are playing. Each round, players play the game within their group. Some players randomly die, and we proceed to the next round. After several rounds, the simulation attempts to show evolutionarily stable strategies.
 
-The simulation also allows for mutation. With it on, each player has a user set chance to mutate (switch strategy).
+Furthermore, the simulation also allows for mutation. With it on, each player has a user set chance to mutate (switch strategy).
 
-This project was inspired by Axelrod and Hamiliton and their writings on tit-for-tat as an evolutionary stable strategy.
+Finally, this project was inspired by Axelrod and Hamilton and their writings on tit-for-tat as an evolutionarily stable strategy.
+
+Of note: Since players in this simulation both die and reproduce very quickly, tit-for-tat players update their memory base on the family of the other player they play. A family number is given to each initial turtle on setup. This family number is then passed down to any offspring that turtle makes.
+
 ## HOW TO USE IT
 
-Click the SETUP button to set up the agents. There are approximately equal numbers of orange and blue agents. The agents are set up so no patch has more than one agent.  Click GO to start the simulation. If agents don't have enough same-color neighbors, they move to a nearby patch. (The topology is wrapping, so that patches on the bottom edge are neighbors with patches on the top and similar for left and right).
+Click the SETUP button to set up the players. There are approximately equal numbers of white, black, and grey players. White players always play the altruist strategy, shortened to "a" in the payoff sliders. Black players always play the egoist strategy, shortened to "e" in the payoff sliders. Grey players are tit-for-tat players, who can play either the altruist strategy or the egoist strategy.
 
-The DENSITY slider controls the occupancy density of the neighborhood (and thus the total number of agents). (It takes effect the next time you click SETUP.)  The %-SIMILAR-WANTED slider controls the percentage of same-color agents that each agent wants among its neighbors. For example, if the slider is set at 30, each blue agent wants at least 30% of its neighbors to be blue agents.
+Click the SEPERATEGROUPS button to separate the players into three groups. It is not necessary to hit SEPERATE as the button PLAY-GROUP will separate the players into groups.
 
-The % SIMILAR monitor shows the average percentage of same-color neighbors for each agent. It starts at about 50%, since each agent starts (on average) with an equal number of orange and blue agents as neighbors. The NUM-UNHAPPY monitor shows the number of unhappy agents, and the % UNHAPPY monitor shows the percent of agents that have fewer same-color neighbors than they want (and thus want to move). The % SIMILAR and the NUM-UNHAPPY monitors are also plotted.
+Click the COMBINE button to combine all players into one group.
 
-The VISUALIZATION chooser gives two options for visualizing the agents. The OLD option uses the visualization that was used by the segregation model in the past. The SQUARE-X option visualizes the agents as squares. Unhappy agents are visualized as Xs.
+Click the PLAY-ROUND button to advance the simulation one round.
 
-## THINGS TO NOTICE
+Click the PLAY-BLACK-WHITE button to have the simulation run continuously using one group.
 
-When you execute SETUP, the orange and blue agents are randomly distributed throughout the neighborhood. But many agents are "unhappy" since they don't have enough same-color neighbors. The unhappy agents move to new locations in the vicinity. But in the new locations, they might tip the balance of the local population, prompting other agents to leave. If a few  agents move into an area, the local blue agents might leave. But when the blue agents move to a new area, they might prompt orange agents to leave that area.
+Click the PLAY-GROUPS button to have the simulation run continuously using three groups. Players will only play with other players within their group. The groups are by default shown as a red, green, and blue group. The different shade of each color within a group shows a player's strategy. A dark shade means they are an egoist, a light shade means they are an altruist, and a full bright shade means they are a tit-for-tat-er.
 
-Over time, the number of unhappy agents decreases. But the neighborhood becomes more segregated, with clusters of orange agents and clusters of blue agents.
+### How to handle memory
 
-In the case where each agent wants at least 30% same-color neighbors, the agents end up with (on average) 70% same-color neighbors. So relatively small individual preferences can lead to significant overall segregation.
+Click the TOGGLE-PERFECT-RECALL button to toggle on/off perfect-recall. Perfect-recall determines how a tit-for-tat player interacts with a player from an unseen family. 
 
-## THINGS TO TRY
+* With perfect-recall set to true, a tit-for-tat player will look at their most recent interaction. They will then perform the strategy they played against in the previous round.
+* With perfect-recall set to false, a tit-for-tat player will look at all their previous interactions. They will then determine what proportion of previous interactions were against an egoist strategy, let's call it p. They will then create a probability of playing the altruist strategy by the formula: 
+	* 1- (PROPORTION-STRENGTH / 100) * p
 
-Try different values for %-SIMILAR-WANTED. How does the overall degree of segregation change?
+The PROPORTION-STRENGTH slider controls how much p affects a tit-for-tat player's strategy. 
 
-If each agent wants at least 40% same-color neighbors, what percentage (on average) do they end up with?
+For Example:
+Assume a tit-for-tat player has played two altruists and two egoists. Here, p = 0.5.
 
-Try different values of DENSITY. How does the initial occupancy density affect the percentage of unhappy agents? How does it affect the time it takes for the model to finish?
+ * If PROPORTION-STRENGTH = 100, then there is a 1 - 1*(0.5) = .5 = 50% chance the tit-for-tat player plays an alturist strategy when meeting a new player.
+ * If PROPORTION-STRENGTH = 20, then there is a 1 - 0.2*(0.5) = 0.9 = 90% chance the tit-for-tat player plays an alturist strategy when meeting a new player.
 
-Can you set sliders so that the model never finishes running, and agents keep looking for new locations?
+### How to handle death
+
+The DENSITY slider determines several things. 
+
+1. It is used to on setup as the probability of each patch having turtle. 
+2. For example, a DENSITY of 50 would mean there is a 50% each patch has a turtle.
+It is used as a part of the equation to calculate the probability of death when density death is true.
+
+Click the TOGGLE-DENSITY-DEATH button to toggle on/off density-death. Density-death determines how the probability of dying is handled.
+
+ * With density-death set to true, the probability of dying is calculated as: 
+(DENSITY-DEATH-STRENGTH / 100) * (1 - ( (DENSITY / 100) - (# of current turtles / # of patches)))
+ * With density-death set to false, the probability of dying is the DEATH-RATE.
+The DENSITY-DEATH-STRENGTH slider determines the strength that the difference between the current density and DENSITY affects the probability of death.
+
+The DEATH-RATE slider determines a set probability of a turtle dying.
+ * For Example, a DEATH-RATE of 20 means each turtle has a 20% chance of dying.
+
+The DENSITYLIMIT sliders determine a set number of turtles that if the simulation passes, it stops. This is mostly used to prevent crashes due to populations growing too large for the program to handle.
+
+If most use cases, having density-death set to true will yield the best results in terms of allowing for evolution. A DENSITY-DEATH-STRENGTH of around 60 is also usually ideal, though this should be tweaked for each game.
+
+
+### How to handle payoffs
+Four sliders handle payoffs in the game.
+
+* E/A-PAY is the payoff of an egoist against an altruist. 
+* E/E-PAY is the payoff of an egoist against an egoist.
+* A/A-PAY is the payoff of an altruist against an altruist.
+* A/E-PAY is the payoff of an altruist against an egoist.
+
+Any positive payoff means the turtle will create that number of offspring.
+
+A zero payoff means the turtle will simply just stay alive.
+
+A -1 payoff means the turtle will die. 
+
 
 ## EXTENDING THE MODEL
 
